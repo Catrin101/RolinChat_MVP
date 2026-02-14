@@ -1,0 +1,134 @@
+{
+	"acciones_rol": [
+		{
+			"id": "abrazo",
+			"nombre": "Abrazo Cálido",
+			"combinaciones_sexo": [
+				["masculino", "femenino"],
+				["masculino", "masculino"],
+				["femenino", "femenino"],
+				["masculino", "no_binario"],
+				["femenino", "no_binario"],
+				["no_binario", "no_binario"]
+			],
+			"combinaciones_raza": [
+				["humano", "humano"],
+				["humano", "elfo"],
+				["humano", "enano"],
+				["elfo", "elfo"],
+				["enano", "enano"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_abrazo.png"
+		},
+		{
+			"id": "beso",
+			"nombre": "Beso Apasionado",
+			"combinaciones_sexo": [
+				["masculino", "femenino"],
+				["femenino", "femenino"],
+				["masculino", "masculino"]
+			],
+			"combinaciones_raza": [
+				["humano", "humano"],
+				["humano", "elfo"],
+				["elfo", "elfo"],
+				["demonio", "humano"],
+				["angel", "humano"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_beso.png"
+		},
+		{
+			"id": "lucha",
+			"nombre": "Duelo de Honor",
+			"combinaciones_sexo": [
+				["masculino", "masculino"],
+				["masculino", "femenino"],
+				["femenino", "femenino"]
+			],
+			"combinaciones_raza": [
+				["humano", "orco"],
+				["elfo", "orco"],
+				["enano", "orco"],
+				["humano", "humano"],
+				["orco", "orco"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_lucha.png"
+		},
+		{
+			"id": "danza",
+			"nombre": "Danza Ritual",
+			"combinaciones_sexo": [
+				["masculino", "femenino"],
+				["femenino", "femenino"]
+			],
+			"combinaciones_raza": [
+				["humano", "humano"],
+				["elfo", "elfo"],
+				["humano", "elfo"],
+				["angel", "elfo"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_danza.png"
+		},
+		{
+			"id": "pacto",
+			"nombre": "Pacto de Sangre",
+			"combinaciones_sexo": [
+				["masculino", "masculino"],
+				["masculino", "femenino"],
+				["femenino", "femenino"]
+			],
+			"combinaciones_raza": [
+				["demonio", "humano"],
+				["demonio", "elfo"],
+				["demonio", "demonio"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_pacto.png"
+		},
+		{
+			"id": "bendicion",
+			"nombre": "Bendición Divina",
+			"combinaciones_sexo": [
+				["masculino", "femenino"],
+				["masculino", "masculino"],
+				["femenino", "femenino"]
+			],
+			"combinaciones_raza": [
+				["angel", "humano"],
+				["angel", "elfo"],
+				["angel", "angel"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_bendicion.png"
+		},
+		{
+			"id": "compartir_bebida",
+			"nombre": "Compartir Cerveza",
+			"combinaciones_sexo": [
+				["masculino", "masculino"],
+				["masculino", "femenino"],
+				["femenino", "femenino"]
+			],
+			"combinaciones_raza": [
+				["enano", "enano"],
+				["enano", "humano"],
+				["enano", "orco"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_cerveza.png"
+		},
+		{
+			"id": "meditacion",
+			"nombre": "Meditación Conjunta",
+			"combinaciones_sexo": [
+				["masculino", "femenino"],
+				["masculino", "masculino"],
+				["femenino", "femenino"],
+				["no_binario", "no_binario"]
+			],
+			"combinaciones_raza": [
+				["elfo", "elfo"],
+				["humano", "elfo"],
+				["angel", "elfo"]
+			],
+			"imagen_url": "https://i.imgur.com/placeholder_meditacion.png"
+		}
+	]
+}

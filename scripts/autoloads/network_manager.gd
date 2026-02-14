@@ -1,250 +1,228 @@
 # scripts/autoloads/network_manager.gd
 extends Node
 
-## Gestor centralizado de networking
-## Maneja creación/unión a salas, sincronización y RPCs
-
-# ===== SEÑALES =====
-signal room_created(code: String)
-signal room_joined()
-signal connection_failed(reason: String)
-signal player_list_updated(players: Dictionary)
-signal player_connected(peer_id: int, player_name: String)
-signal player_left(peer_id: int, player_name: String)
-signal host_disconnected()
+## NetworkManager - Gestión de conexiones Host-Client (MVP)
+## Implementa networking básico usando ENetMultiplayerPeer
 
 # ===== CONSTANTES =====
 const DEFAULT_PORT := 7777
-const MAX_PLAYERS := 8
-const PROTOCOL_VERSION := "1.0"
+const MAX_CLIENTS := 10
 
-# ===== ESTADO =====
+# ===== ESTADO DE RED =====
 var peer: ENetMultiplayerPeer = null
-var room_code: String = ""
-var is_host: bool = false
-var players: Dictionary = {}
-var local_player_name: String = ""
-var local_avatar_data: Dictionary = {}
+var is_server: bool = false
 
-# ===== CICLO DE VIDA =====
+# ===== INICIALIZACIÓN =====
+
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	
-	print("[NetworkManager] Inicializado correctamente")
 
-# ===== API PÚBLICA =====
+# ===== SEÑALES =====
+signal player_position_updated(peer_id: int, position: Vector2)
 
-func create_room(player_name: String, avatar_data: Dictionary = {}) -> String:
-	if peer != null:
-		push_error("[NetworkManager] Ya estás en una sala")
-		return ""
-	
-	if player_name.strip_edges().is_empty():
-		push_error("[NetworkManager] El nombre del jugador no puede estar vacío")
-		return ""
-	
+# ===== CREACIÓN DE SALA (HOST) =====
+
+## Crea una sala como servidor
+func create_room() -> String:
 	peer = ENetMultiplayerPeer.new()
-	var error = peer.create_server(DEFAULT_PORT, MAX_PLAYERS)
+	var error := peer.create_server(DEFAULT_PORT, MAX_CLIENTS)
 	
 	if error != OK:
-		push_error("[NetworkManager] Error creando servidor: " + str(error))
-		peer = null
+		EventBus.emit_connection_error("No se pudo crear el servidor")
 		return ""
 	
 	multiplayer.multiplayer_peer = peer
-	is_host = true
-	local_player_name = player_name
-	local_avatar_data = avatar_data
-	room_code = _generate_room_code()
+	is_server = true
 	
-	players[1] = {
-		"peer_id": 1,
-		"player_name": player_name,
-		"avatar_data": avatar_data
-	}
+	# Generar código de sala (IP:Puerto simplificado)
+	var room_code := _generate_room_code()
+	GameManager.current_room_code = room_code
+	GameManager.is_host = true
+	GameManager.local_peer_id = multiplayer.get_unique_id()
 	
-	print("[NetworkManager] Sala creada exitosamente")
-	print("[NetworkManager] Código de sala: ", room_code)
+	# Registrar al host como jugador
+	GameManager.register_player(GameManager.local_peer_id, GameManager.local_avatar_data)
 	
-	room_created.emit(room_code)
-	player_list_updated.emit(players)
+	EventBus.room_created.emit(room_code)
+	EventBus.emit_system_message("Sala creada con código: " + room_code)
 	
+	print("[NetworkManager] Sala creada - Código: ", room_code)
 	return room_code
 
-func join_room(code: String, player_name: String, avatar_data: Dictionary = {}) -> void:
-	if peer != null:
-		push_error("[NetworkManager] Ya estás en una sala")
-		connection_failed.emit("Ya estás conectado a una sala")
-		return
+# ===== UNIRSE A SALA (CLIENT) =====
+
+## Se une a una sala existente usando código
+func join_room(room_code: String) -> void:
+	var connection_data := _parse_room_code(room_code)
 	
-	if not _validate_room_code(code):
-		push_error("[NetworkManager] Código de sala inválido: " + code)
-		connection_failed.emit("Código de sala inválido")
+	if connection_data.is_empty():
+		EventBus.emit_connection_error("Código de sala inválido")
 		return
-	
-	if player_name.strip_edges().is_empty():
-		push_error("[NetworkManager] El nombre del jugador no puede estar vacío")
-		connection_failed.emit("Nombre de jugador inválido")
-		return
-	
-	local_player_name = player_name
-	local_avatar_data = avatar_data
-	room_code = code
 	
 	peer = ENetMultiplayerPeer.new()
-	var error = peer.create_client(code, DEFAULT_PORT)
+	var error := peer.create_client(connection_data["ip"], connection_data["port"])
 	
 	if error != OK:
-		push_error("[NetworkManager] Error conectando al servidor: " + str(error))
-		peer = null
-		connection_failed.emit("Error de conexión al servidor")
+		EventBus.emit_connection_error("No se pudo conectar al servidor")
 		return
 	
 	multiplayer.multiplayer_peer = peer
-	is_host = false
+	is_server = false
+	GameManager.is_host = false
 	
-	print("[NetworkManager] Intentando conectar a sala: ", code)
+	print("[NetworkManager] Conectando a sala: ", room_code)
 
+# ===== SALIR DE SALA =====
+
+## Desconecta del servidor y limpia el estado
 func leave_room() -> void:
-	if peer == null:
-		return
+	if peer != null:
+		peer.close()
+		peer = null
 	
-	print("[NetworkManager] Saliendo de la sala...")
-	
-	peer.close()
-	peer = null
 	multiplayer.multiplayer_peer = null
-	room_code = ""
-	players.clear()
-	is_host = false
+	is_server = false
 	
-	print("[NetworkManager] Desconectado correctamente")
+	GameManager.reset_session()
+	EventBus.emit_system_message("Has salido de la sala")
+	
+	print("[NetworkManager] Desconectado de la sala")
 
-func get_players() -> Dictionary:
-	return players.duplicate()
+# ===== SINCRONIZACIÓN DE AVATARES =====
 
-func get_player_data(peer_id: int) -> Dictionary:
-	return players.get(peer_id, {})
+## El cliente envía su avatar al servidor cuando se conecta
+@rpc("any_peer", "reliable")
+func register_avatar(avatar_data: Dictionary) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	
+	print("[NetworkManager] Avatar recibido de peer ", sender_id)
+	GameManager.register_player(sender_id, avatar_data)
+	EventBus.avatar_loaded.emit(sender_id)
+	
+	# Notificar a todos los clientes sobre el nuevo jugador
+	if is_server:
+		_sync_player_joined.rpc(sender_id, avatar_data)
 
-func get_player_name(peer_id: int) -> String:
-	var player_data = players.get(peer_id, {})
-	return player_data.get("player_name", "Desconocido")
+## Sincroniza la unión de un jugador a todos los clientes
+@rpc("authority", "reliable")
+func _sync_player_joined(peer_id: int, avatar_data: Dictionary) -> void:
+	GameManager.register_player(peer_id, avatar_data)
+	EventBus.player_connected.emit(peer_id, avatar_data.get("nombre", "Desconocido"))
 
-# ===== CALLBACKS DE MULTIPLAYER =====
+## Sincroniza el cambio de avatar de un jugador
+@rpc("any_peer", "reliable")
+func sync_avatar_change(avatar_data: Dictionary) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	
+	GameManager.register_player(sender_id, avatar_data)
+	EventBus.avatar_changed.emit(sender_id, avatar_data)
+	
+	print("[NetworkManager] Avatar actualizado para peer ", sender_id)
+
+# ===== SISTEMA DE CHAT =====
+
+## Envía un mensaje de chat a todos los jugadores
+@rpc("any_peer", "reliable")
+func send_chat_message(text: String) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	var sender_data := GameManager.get_player_data(sender_id)
+	var sender_name := sender_data.get("nombre", "Desconocido")
+	
+	# Reenviar a todos los clientes
+	if is_server:
+		_receive_chat_message.rpc(sender_name, text)
+		# El servidor también debe recibir el mensaje
+		_receive_chat_message(sender_name, text)
+
+## Recibe un mensaje de chat (llamado por el servidor)
+@rpc("authority", "reliable")
+func _receive_chat_message(sender_name: String, text: String) -> void:
+	EventBus.message_received.emit(sender_name, text)
+
+# ===== SINCRONIZACIÓN DE POSICIÓN (BÁSICA) =====
+
+## Sincroniza la posición de un jugador
+@rpc("any_peer", "unreliable")
+func sync_position(position: Vector2) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	
+	# Reenviar a todos los demás clientes
+	if is_server:
+		_update_player_position.rpc(sender_id, position)
+
+## Actualiza la posición de un jugador en todos los clientes
+@rpc("authority", "unreliable")
+func _update_player_position(peer_id: int, position: Vector2) -> void:
+	# Emitir señal para que los avatares se actualicen
+	player_position_updated.emit(peer_id, position)
+
+# ===== CALLBACKS DE NETWORKING =====
 
 func _on_peer_connected(id: int) -> void:
 	print("[NetworkManager] Peer conectado: ", id)
+	
+	# Si somos el servidor, enviamos la lista actual de jugadores al nuevo cliente
+	if is_server:
+		_send_existing_players_to_new_client(id)
 
 func _on_peer_disconnected(id: int) -> void:
-	var player_name = get_player_name(id)
-	print("[NetworkManager] Peer desconectado: ", id, " (", player_name, ")")
+	print("[NetworkManager] Peer desconectado: ", id)
 	
-	if players.has(id):
-		players.erase(id)
-		player_list_updated.emit(players)
-		player_left.emit(id, player_name)
+	var player_data := GameManager.get_player_data(id)
+	var player_name := player_data.get("nombre", "Desconocido")
+	
+	GameManager.unregister_player(id)
+	EventBus.player_disconnected.emit(id)
+	EventBus.emit_system_message(player_name + " se ha desconectado")
 
 func _on_connected_to_server() -> void:
-	print("[NetworkManager] Conectado al servidor exitosamente")
-	_register_player.rpc_id(1, local_player_name, local_avatar_data)
+	print("[NetworkManager] Conectado al servidor")
+	
+	GameManager.local_peer_id = multiplayer.get_unique_id()
+	GameManager.register_player(GameManager.local_peer_id, GameManager.local_avatar_data)
+	
+	# Enviar nuestro avatar al servidor
+	register_avatar.rpc_id(1, GameManager.local_avatar_data)
+	
+	EventBus.room_joined.emit(GameManager.current_room_code)
+	EventBus.emit_system_message("Conectado a la sala")
 
 func _on_connection_failed() -> void:
-	print("[NetworkManager] Fallo en la conexión")
+	print("[NetworkManager] Conexión fallida")
+	EventBus.emit_connection_error("No se pudo conectar a la sala")
 	peer = null
-	multiplayer.multiplayer_peer = null
-	connection_failed.emit("No se pudo conectar al servidor. Verifica el código.")
 
 func _on_server_disconnected() -> void:
-	print("[NetworkManager] El servidor se desconectó")
-	peer = null
-	multiplayer.multiplayer_peer = null
-	players.clear()
-	host_disconnected.emit()
-
-# ===== RPCs =====
-
-@rpc("any_peer", "call_remote", "reliable")
-func _register_player(player_name: String, avatar_data: Dictionary) -> void:
-	if not is_host:
-		return
-	
-	var sender_id = multiplayer.get_remote_sender_id()
-	print("[NetworkManager] Registrando jugador: ", player_name, " (ID: ", sender_id, ")")
-	
-	var final_name = _ensure_unique_name(player_name)
-	
-	players[sender_id] = {
-		"peer_id": sender_id,
-		"player_name": final_name,
-		"avatar_data": avatar_data
-	}
-	
-	_update_player_list.rpc(players)
-	_confirm_registration.rpc_id(sender_id, final_name)
-	
-	player_list_updated.emit(players)
-	player_connected.emit(sender_id, final_name)
-
-@rpc("authority", "call_local", "reliable")
-func _update_player_list(new_players: Dictionary) -> void:
-	players = new_players
-	player_list_updated.emit(players)
-	print("[NetworkManager] Lista de jugadores actualizada: ", players.keys())
-
-@rpc("authority", "call_remote", "reliable")
-func _confirm_registration(assigned_name: String) -> void:
-	local_player_name = assigned_name
-	print("[NetworkManager] Registro confirmado con nombre: ", assigned_name)
-	room_joined.emit()
+	print("[NetworkManager] Servidor desconectado")
+	EventBus.emit_system_message("El host ha cerrado la sala")
+	leave_room()
 
 # ===== MÉTODOS PRIVADOS =====
 
+## Genera un código de sala simple (8 caracteres alfanuméricos)
 func _generate_room_code() -> String:
-	var ip_addresses = IP.get_local_addresses()
-	
-	for ip in ip_addresses:
-		if ip.begins_with("192.168.") or ip.begins_with("10."):
-			return ip
-	
-	if ip_addresses.size() > 0:
-		return ip_addresses[0]
-	
-	return "127.0.0.1"
+	const CHARS := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var code := ""
+	for i in range(8):
+		code += CHARS[randi() % CHARS.length()]
+	return code
 
-func _validate_room_code(code: String) -> bool:
-	if code.strip_edges().is_empty():
-		return false
-	
-	var parts = code.split(".")
-	if parts.size() != 4:
-		return false
-	
-	for part in parts:
-		if not part.is_valid_int():
-			return false
-		var num = int(part)
-		if num < 0 or num > 255:
-			return false
-	
-	return true
+## Parsea un código de sala en IP:Puerto
+func _parse_room_code(code: String) -> Dictionary:
+	# Por ahora usamos localhost por defecto
+	# En producción, esto requeriría un servidor de matchmaking
+	return {
+		"ip": "127.0.0.1",
+		"port": DEFAULT_PORT
+	}
 
-func _ensure_unique_name(player_name: String) -> String:
-	var base_name = player_name
-	var counter = 2
-	var final_name = base_name
-	
-	while _name_exists(final_name):
-		final_name = base_name + " (" + str(counter) + ")"
-		counter += 1
-	
-	return final_name
-
-func _name_exists(name: String) -> bool:
-	for player_data in players.values():
-		if player_data.get("player_name", "") == name:
-			return true
-	return false
+## Envía la lista de jugadores existentes a un nuevo cliente
+func _send_existing_players_to_new_client(new_client_id: int) -> void:
+	for peer_id in GameManager.connected_players.keys():
+		if peer_id != new_client_id:
+			var player_data := GameManager.get_player_data(peer_id)
+			_sync_player_joined.rpc_id(new_client_id, peer_id, player_data)

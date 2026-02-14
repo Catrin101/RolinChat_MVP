@@ -16,7 +16,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-NetworkManager="*uid://221j4murbgbf"
+EventBus="*uid://tnf4dyh5alt1"
+GameManager="*uid://ccfxwg56pody5"
+DataManager="*uid://dmgawk6mj3ag6"
+NetworkManager="*uid://s1r7co2lek4j"
 
 [physics]
 
