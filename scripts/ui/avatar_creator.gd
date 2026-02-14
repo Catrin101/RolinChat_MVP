@@ -81,14 +81,14 @@ func _display_avatar(avatar_data: Dictionary) -> void:
 	image_url_input.text = avatar_data.get("imagen_url", "")
 	
 	# Seleccionar raza
-	var raza_id := avatar_data.get("raza_id", "humano")
+	var raza_id: String = str(avatar_data.get("raza_id", "humano"))
 	for i in range(raza_option.item_count):
 		if raza_option.get_item_metadata(i) == raza_id:
 			raza_option.select(i)
 			break
 	
 	# Seleccionar sexo
-	var sexo_id := avatar_data.get("sexo_id", "masculino")
+	var sexo_id: String = str(avatar_data.get("sexo_id", "masculino"))
 	for i in range(sexo_option.item_count):
 		if sexo_option.get_item_metadata(i) == sexo_id:
 			sexo_option.select(i)
@@ -192,11 +192,10 @@ func _on_image_test_completed(result: int, response_code: int, headers: PackedSt
 	var error := OK
 	
 	# Detectar formato
-	var first_bytes := body.slice(0, 4).get_string_from_ascii()
-	
-	if first_bytes.begins_with("\x89PNG"):
+	# Detectar formato por "magic bytes" (evitamos strings ASCII para bytes binarios)
+	if body.size() >= 4 and body[0] == 0x89 and body[1] == 0x50 and body[2] == 0x4E and body[3] == 0x47:
 		error = image.load_png_from_buffer(body)
-	elif first_bytes.begins_with("\xFF\xD8"):
+	elif body.size() >= 2 and body[0] == 0xFF and body[1] == 0xD8:
 		error = image.load_jpg_from_buffer(body)
 	else:
 		error = image.load_webp_from_buffer(body)
@@ -218,7 +217,7 @@ func _refresh_avatar_list() -> void:
 	
 	for avatar_info in avatars:
 		var avatar_data: Dictionary = avatar_info["data"]
-		var display_name := avatar_data.get("nombre", "Sin Nombre")
+		var display_name: String = str(avatar_data.get("nombre", "Sin Nombre"))
 		avatar_list.add_item(display_name)
 		avatar_list.set_item_metadata(avatar_list.item_count - 1, avatar_info["filename"])
 

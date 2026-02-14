@@ -136,7 +136,7 @@ func register_player(peer_id: int, avatar_data: Dictionary) -> void:
 ## Elimina un jugador desconectado
 func unregister_player(peer_id: int) -> void:
 	if connected_players.has(peer_id):
-		var player_name := connected_players[peer_id].get("nombre", "Desconocido")
+		var player_name: String = str(connected_players[peer_id].get("nombre", "Desconocido"))
 		connected_players.erase(peer_id)
 		print("[GameManager] Jugador eliminado: ", peer_id, " - ", player_name)
 

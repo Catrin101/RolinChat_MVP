@@ -53,7 +53,7 @@ func setup(player_peer_id: int, player_avatar_data: Dictionary, is_local: bool =
 
 ## Carga la imagen del avatar (desde URL o archivo local)
 func _load_avatar_image() -> void:
-	var image_path := avatar_data.get("imagen_url", "")
+	var image_path: String = str(avatar_data.get("imagen_url", ""))
 	
 	if image_path.is_empty():
 		_set_default_texture()

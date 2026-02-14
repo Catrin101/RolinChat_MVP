@@ -130,7 +130,7 @@ func sync_avatar_change(avatar_data: Dictionary) -> void:
 func send_chat_message(text: String) -> void:
 	var sender_id := multiplayer.get_remote_sender_id()
 	var sender_data := GameManager.get_player_data(sender_id)
-	var sender_name := sender_data.get("nombre", "Desconocido")
+	var sender_name: String = str(sender_data.get("nombre", "Desconocido"))
 	
 	# Reenviar a todos los clientes
 	if is_server:
@@ -173,7 +173,7 @@ func _on_peer_disconnected(id: int) -> void:
 	print("[NetworkManager] Peer desconectado: ", id)
 	
 	var player_data := GameManager.get_player_data(id)
-	var player_name := player_data.get("nombre", "Desconocido")
+	var player_name: String = str(player_data.get("nombre", "Desconocido"))
 	
 	GameManager.unregister_player(id)
 	EventBus.player_disconnected.emit(id)

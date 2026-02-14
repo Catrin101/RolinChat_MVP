@@ -89,10 +89,10 @@ func _is_action_compatible(accion: Dictionary, actor: Dictionary, target: Dictio
 	if not accion.has("combinaciones_sexo") or not accion.has("combinaciones_raza"):
 		return false
 	
-	var actor_sexo := actor.get("sexo_id", "")
-	var actor_raza := actor.get("raza_id", "")
-	var target_sexo := target.get("sexo_id", "")
-	var target_raza := target.get("raza_id", "")
+	var actor_sexo: String = str(actor.get("sexo_id", ""))
+	var actor_raza: String = str(actor.get("raza_id", ""))
+	var target_sexo: String = str(target.get("sexo_id", ""))
+	var target_raza: String = str(target.get("raza_id", ""))
 	
 	# Verificar compatibilidad de sexo
 	var sexo_compatible := false

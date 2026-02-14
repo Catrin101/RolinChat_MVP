@@ -73,13 +73,13 @@ func _send_message() -> void:
 	
 	# Si somos el servidor, también procesamos localmente
 	if NetworkManager.is_server:
-		var sender_name := GameManager.local_avatar_data.get("nombre", "Host")
+		var sender_name: String = str(GameManager.local_avatar_data.get("nombre", "Host"))
 		add_player_message(sender_name, text, true)
 
 # ===== RECEPCIÓN DE MENSAJES =====
 
 func _on_message_received(sender_name: String, text: String) -> void:
-	var is_self := sender_name == GameManager.local_avatar_data.get("nombre", "")
+	var is_self: bool = sender_name == str(GameManager.local_avatar_data.get("nombre", ""))
 	add_player_message(sender_name, text, is_self)
 
 func _on_system_message(text: String) -> void:
@@ -90,7 +90,7 @@ func _on_player_connected(peer_id: int, player_name: String) -> void:
 
 func _on_player_disconnected(peer_id: int) -> void:
 	var player_data := GameManager.get_player_data(peer_id)
-	var player_name := player_data.get("nombre", "Jugador")
+	var player_name: String = str(player_data.get("nombre", "Jugador"))
 	add_system_message(player_name + " se ha desconectado")
 
 # ===== ADICIÓN DE MENSAJES =====

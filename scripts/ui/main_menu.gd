@@ -128,7 +128,7 @@ func _on_connection_failed(error_message: String) -> void:
 
 func _update_status() -> void:
 	var avatar := GameManager.local_avatar_data
-	var avatar_name := avatar.get("nombre", "Sin Avatar")
+	var avatar_name: String = str(avatar.get("nombre", "Sin Avatar"))
 	_set_status("Avatar actual: " + avatar_name, Color.WHITE)
 
 func _set_status(text: String, color: Color = Color.WHITE) -> void:

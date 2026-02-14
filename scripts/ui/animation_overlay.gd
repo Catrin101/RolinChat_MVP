@@ -40,12 +40,12 @@ func show_animation(action_data: Dictionary, actor: Dictionary, target: Dictiona
 	# Configurar textos
 	action_name_label.text = action_data.get("nombre", "Acción Desconocida")
 	
-	var actor_name := actor.get("nombre", "Desconocido")
-	var target_name := target.get("nombre", "Desconocido")
+	var actor_name: String = actor.get("nombre", "Desconocido")
+	var target_name: String = target.get("nombre", "Desconocido")
 	participants_label.text = "%s y %s" % [actor_name, target_name]
 	
 	# Cargar imagen
-	var image_url := action_data.get("imagen_url", "")
+	var image_url: String = action_data.get("imagen_url", "")
 	_load_action_image(image_url)
 	
 	# Mostrar overlay
@@ -54,7 +54,7 @@ func show_animation(action_data: Dictionary, actor: Dictionary, target: Dictiona
 	# Emitir señal
 	EventBus.animation_overlay_shown.emit(image_url, action_data.get("nombre", ""))
 
-func _on_show_animation(image_url: String, action_name: String) -> void:
+func _on_show_animation(_image_url: String, _action_name: String) -> void:
 	# Esta función puede ser usada para sincronizar entre clientes
 	pass
 
@@ -85,7 +85,7 @@ func _load_from_url(url: String) -> void:
 		push_error("[AnimationOverlay] Error al iniciar descarga de imagen")
 		_set_default_image()
 
-func _on_image_downloaded(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
+func _on_image_downloaded(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
 		push_error("[AnimationOverlay] Error descargando imagen: ", response_code)
 		_set_default_image()
@@ -94,14 +94,17 @@ func _on_image_downloaded(result: int, response_code: int, headers: PackedString
 	var image := Image.new()
 	var error := OK
 	
-	# Detectar formato
-	var first_bytes := body.slice(0, 4).get_string_from_ascii()
+	# Detectar formato inspeccionando los bytes directamente
+	# Evitamos convertir a string porque caracteres como 0x89 no son ASCII estándar y causan errores
 	
-	if first_bytes.begins_with("\x89PNG"):
+	if body.size() >= 4 and body[0] == 0x89 and body[1] == 0x50 and body[2] == 0x4E and body[3] == 0x47:
+		# Firma PNG: 89 P N G
 		error = image.load_png_from_buffer(body)
-	elif first_bytes.begins_with("\xFF\xD8"):
+	elif body.size() >= 2 and body[0] == 0xFF and body[1] == 0xD8:
+		# Firma JPEG: FF D8
 		error = image.load_jpg_from_buffer(body)
 	else:
+		# Por defecto WebP
 		error = image.load_webp_from_buffer(body)
 	
 	if error != OK:
