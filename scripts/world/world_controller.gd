@@ -34,6 +34,7 @@ var spawned_players: Dictionary = {}
 
 func _ready() -> void:
 	_connect_signals()
+	_load_selected_map()
 	_spawn_local_player()
 	_request_existing_players()
 
@@ -47,6 +48,43 @@ func _connect_signals() -> void:
 	# Señales de networking específicas
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+
+## Carga el mapa seleccionado por el host
+func _load_selected_map() -> void:
+	var map_id := GameManager.get_current_map_id()
+	var map_info = MapRegistry.get_map_info(map_id)
+	
+	if not map_info:
+		push_error("[WorldController] Mapa no encontrado: ", map_id)
+		map_id = "default_lobby"
+		map_info = MapRegistry.get_default_map()
+	
+	print("[WorldController] Cargando mapa: ", map_info.display_name)
+	
+	# Cargar escena del mapa si existe
+	if ResourceLoader.exists(map_info.scene_path):
+		var map_scene_packed = load(map_info.scene_path)
+		var map_scene = map_scene_packed.instantiate()
+		
+		# Buscar TileMap en el mapa
+		var loaded_tilemap = map_scene.get_node_or_null("TileMap")
+		if loaded_tilemap:
+			# Reemplazar el TileMap actual
+			if tilemap:
+				tilemap.queue_free()
+			tilemap = loaded_tilemap
+		
+		# El mapa puede contener otros elementos (decoración, objetos)
+		# Los agregamos como hijos
+		for child in map_scene.get_children():
+			if child != loaded_tilemap: # No duplicar el tilemap
+				map_scene.remove_child(child)
+				add_child(child)
+		
+		map_scene.queue_free()
+	else:
+		push_warning("[WorldController] Escena de mapa no existe: ", map_info.scene_path)
+		# Usar el TileMap por defecto que ya existe en la escena
 
 # ===== SPAWN DE JUGADORES =====
 

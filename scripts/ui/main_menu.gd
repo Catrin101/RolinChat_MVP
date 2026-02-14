@@ -4,6 +4,9 @@ extends Control
 ## MainMenu - Pantalla principal del MVP
 ## Permite crear salas, unirse a salas y gestionar avatares
 
+# ===== ESCENAS PRECARGADAS (AGREGAR AL INICIO) =====
+const MAP_SELECTOR_SCENE := preload("res://scenes/ui/map_selector.tscn")
+
 # ===== NODOS =====
 @onready var create_room_button: Button = %CreateRoomButton
 @onready var join_room_button: Button = %JoinRoomButton
@@ -45,18 +48,16 @@ func _connect_signals() -> void:
 # ===== CALLBACKS DE BOTONES =====
 
 func _on_create_room_pressed() -> void:
-	_set_status("Creando sala...", Color.YELLOW)
-	_disable_buttons()
+	# Mostrar selector de mapas
+	var map_selector = MAP_SELECTOR_SCENE.instantiate()
+	add_child(map_selector)
 	
-	# Crear sala
-	var room_code := NetworkManager.create_room()
+	# Deshabilitar botones principales
+	_disable_main_buttons()
 	
-	if room_code.is_empty():
-		_set_status("Error al crear sala", Color.RED)
-		_enable_buttons()
-		return
-	
-	# La señal room_created manejará el resto
+	# Conectar señales
+	map_selector.map_selected.connect(_on_map_selected_for_room)
+	map_selector.cancelled.connect(_on_map_selection_cancelled)
 
 func _on_join_room_pressed() -> void:
 	join_panel.show()
@@ -178,3 +179,25 @@ func _show_room_code_dialog(code: String) -> void:
 	# Auto-destruir el diálogo
 	dialog.close_requested.connect(dialog.queue_free)
 	dialog.confirmed.connect(dialog.queue_free)
+
+# ===== NUEVOS MÉTODOS (AGREGAR AL FINAL) =====
+
+func _on_map_selected_for_room(map_id: String) -> void:
+	_set_status("Creando sala con mapa: " + MapRegistry.get_map_info(map_id).display_name, Color.YELLOW)
+	
+	# Establecer mapa en GameManager
+	GameManager.set_current_map(map_id)
+	
+	# Crear sala
+	var room_code := NetworkManager.create_room()
+	
+	if room_code.is_empty():
+		_set_status("Error al crear sala", Color.RED)
+		_enable_main_buttons()
+		return
+	
+	# La señal room_created manejará el resto
+
+func _on_map_selection_cancelled() -> void:
+	_set_status("Selección de mapa cancelada", Color.YELLOW)
+	_enable_main_buttons()

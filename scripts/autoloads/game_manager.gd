@@ -13,6 +13,7 @@ var local_peer_id: int = 0
 var is_host: bool = false
 var current_room_code: String = ""
 var current_map: String = ""
+var current_map_id: String = "default_lobby"
 
 # ===== PERFIL DEL JUGADOR LOCAL =====
 var local_avatar_data: Dictionary = {}
@@ -168,5 +169,21 @@ func reset_session() -> void:
 	is_host = false
 	current_room_code = ""
 	current_map = ""
+	current_map_id = "default_lobby"
 	clear_connected_players()
 	print("[GameManager] Sesión reseteada")
+
+# ===== MÉTODOS PARA GESTIÓN DE MAPAS (AGREGAR AL FINAL) =====
+
+## Establece el mapa actual para la sala
+func set_current_map(map_id: String) -> void:
+	if MapRegistry.map_exists(map_id):
+		current_map_id = map_id
+		print("[GameManager] Mapa establecido: ", map_id)
+	else:
+		push_error("[GameManager] Mapa no existe: ", map_id)
+		current_map_id = "default_lobby"
+
+## Obtiene el mapa actual
+func get_current_map_id() -> String:
+	return current_map_id
