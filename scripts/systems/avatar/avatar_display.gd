@@ -94,13 +94,13 @@ func _on_image_downloaded(result: int, response_code: int, headers: PackedString
 	var image := Image.new()
 	var error := OK
 	
-	# Intentar diferentes formatos
-	if body.slice(0, 3).get_string_from_ascii().begins_with("PNG"):
+	# Intentar diferentes formatos por magic bytes
+	if body.size() >= 4 and body[0] == 0x89 and body[1] == 0x50 and body[2] == 0x4E and body[3] == 0x47:
 		error = image.load_png_from_buffer(body)
-	elif body.slice(0, 3).get_string_from_ascii().begins_with("JPG") or \
-		 body.slice(0, 3).get_string_from_ascii().begins_with("JFI"):
+	elif body.size() >= 2 and body[0] == 0xFF and body[1] == 0xD8:
 		error = image.load_jpg_from_buffer(body)
 	else:
+		# Intentar WebP o fallbacks
 		error = image.load_webp_from_buffer(body)
 	
 	if error != OK:

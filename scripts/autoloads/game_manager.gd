@@ -154,11 +154,12 @@ func clear_connected_players() -> void:
 
 # ===== UTILIDADES =====
 
-## Genera un UUID simple
+## Genera un UUID simple (hexadecimal)
 func _generate_uuid() -> String:
+	var chars := "0123456789abcdef"
 	var uuid := ""
 	for i in range(32):
-		uuid += str(randi() % 16)
+		uuid += chars[randi() % 16]
 		if i == 7 or i == 11 or i == 15 or i == 19:
 			uuid += "-"
 	return uuid

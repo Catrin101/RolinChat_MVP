@@ -12,15 +12,24 @@ config_version=5
 
 config/name="RolingChat_MVP"
 run/main_scene="res://scenes/ui/main_menu.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-EventBus="*uid://tnf4dyh5alt1"
-GameManager="*uid://ccfxwg56pody5"
-DataManager="*uid://dmgawk6mj3ag6"
-NetworkManager="*uid://s1r7co2lek4j"
+EventBus="*res://scripts/autoloads/event_bus.gd"
+DataManager="*res://scripts/autoloads/data_manager.gd"
+GameManager="*res://scripts/autoloads/game_manager.gd"
+NetworkManager="*res://scripts/autoloads/network_manager.gd"
+MapRegistry="*res://scripts/autoloads/map_registry.gd"
+
+[input]
+
+interact={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":69,"key_label":0,"unicode":101,"echo":false,"script":null)
+]
+}
 
 [physics]
 

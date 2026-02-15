@@ -64,24 +64,18 @@ func _load_selected_map() -> void:
 	# Cargar escena del mapa si existe
 	if ResourceLoader.exists(map_info.scene_path):
 		var map_scene_packed = load(map_info.scene_path)
-		var map_scene = map_scene_packed.instantiate()
+		var map_instance = map_scene_packed.instantiate()
 		
-		# Buscar TileMap en el mapa
-		var loaded_tilemap = map_scene.get_node_or_null("TileMap")
-		if loaded_tilemap:
-			# Reemplazar el TileMap actual
-			if tilemap:
+		# Agregar la instancia del mapa como hijo
+		add_child(map_instance)
+		move_child(map_instance, 0) # Asegurar que esté detrás de los jugadores
+		
+		# Intentar actualizar la referencia a tilemap
+		var new_tilemap = map_instance.get_node_or_null("TileMap")
+		if new_tilemap:
+			if tilemap and tilemap.get_parent() == self:
 				tilemap.queue_free()
-			tilemap = loaded_tilemap
-		
-		# El mapa puede contener otros elementos (decoración, objetos)
-		# Los agregamos como hijos
-		for child in map_scene.get_children():
-			if child != loaded_tilemap: # No duplicar el tilemap
-				map_scene.remove_child(child)
-				add_child(child)
-		
-		map_scene.queue_free()
+			tilemap = new_tilemap
 	else:
 		push_warning("[WorldController] Escena de mapa no existe: ", map_info.scene_path)
 		# Usar el TileMap por defecto que ya existe en la escena
