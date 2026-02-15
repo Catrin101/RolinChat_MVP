@@ -126,20 +126,23 @@ func sync_avatar_change(avatar_data: Dictionary) -> void:
 # ===== SISTEMA DE CHAT =====
 
 ## Envía un mensaje de chat a todos los jugadores
-@rpc("any_peer", "reliable")
+@rpc("any_peer", "reliable", "call_local")
 func send_chat_message(text: String) -> void:
 	var sender_id := multiplayer.get_remote_sender_id()
+
+	# Si se llamó localmente (en el servidor), el sender_id será 0
+	if sender_id == 0:
+		sender_id = multiplayer.get_unique_id()
+
 	var sender_data := GameManager.get_player_data(sender_id)
 	var sender_name: String = str(sender_data.get("nombre", "Desconocido"))
 	
 	# Reenviar a todos los clientes
 	if is_server:
 		_receive_chat_message.rpc(sender_name, text)
-		# El servidor también debe recibir el mensaje
-		_receive_chat_message(sender_name, text)
 
 ## Recibe un mensaje de chat (llamado por el servidor)
-@rpc("authority", "reliable")
+@rpc("authority", "reliable", "call_local")
 func _receive_chat_message(sender_name: String, text: String) -> void:
 	EventBus.message_received.emit(sender_name, text)
 
@@ -152,11 +155,20 @@ func sync_position(position: Vector2) -> void:
 	
 	# Reenviar a todos los demás clientes
 	if is_server:
-		_update_player_position.rpc(sender_id, position)
+		for id in multiplayer.get_peers():
+			if id != sender_id:
+				_update_player_position.rpc_id(id, sender_id, position)
+
+		# Ejecutar también localmente en el servidor (para que el host vea al cliente)
+		_update_player_position(sender_id, position)
 
 ## Actualiza la posición de un jugador en todos los clientes
-@rpc("authority", "unreliable")
+@rpc("authority", "unreliable", "call_local")
 func _update_player_position(peer_id: int, position: Vector2) -> void:
+	# No actualizar si es nuestra propia posición (aunque rpc_id(0) debería evitarlo)
+	if peer_id == multiplayer.get_unique_id():
+		return
+
 	# Emitir señal para que los avatares se actualicen
 	player_position_updated.emit(peer_id, position)
 

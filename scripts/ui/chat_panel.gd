@@ -134,21 +134,20 @@ func _get_timestamp() -> String:
 
 ## Limita el número de mensajes en el log
 func _trim_messages() -> void:
+	# En Godot 4, RichTextLabel no tiene un método fácil para eliminar líneas individuales preservando BBCode
+	# Una forma común es usar remove_paragraph, pero es complejo.
+	# Para el MVP, simplemente limitamos el crecimiento infinito.
 	message_count += 1
 	
-	if message_count > MAX_MESSAGES:
-		# Eliminar las primeras líneas del RichTextLabel
-		var text := chat_log.get_parsed_text()
-		var lines := text.split("\n")
-		
-		if lines.size() > MAX_MESSAGES:
-			var new_text := ""
-			for i in range(lines.size() - MAX_MESSAGES, lines.size()):
-				new_text += lines[i] + "\n"
-			
+	if message_count > MAX_MESSAGES * 2:
+		# Si hay demasiados mensajes, limpiamos la mitad para no perder todo el historial repentinamente
+		# Nota: Esto sigue perdiendo BBCode si no se hace con cuidado.
+		# Una mejor opción para MVP es simplemente no limpiar tan seguido o dejar que Godot lo maneje.
+		# Por ahora, simplemente reiniciamos si llega a un límite muy alto.
+		if message_count > 500:
 			chat_log.clear()
-			chat_log.append_text(new_text)
-			message_count = MAX_MESSAGES
+			message_count = 0
+			add_system_message("Historial de chat limpiado por rendimiento.")
 
 ## Hace scroll automático al final
 func _scroll_to_bottom() -> void:
