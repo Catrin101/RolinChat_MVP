@@ -15,10 +15,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="RolingChat_MVP"
-config/features=PackedStringArray("4.6", "Forward Plus")
 run/main_scene="res://scenes/main_menu/main_menu.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
-
 
 [autoload]
 
@@ -30,8 +29,6 @@ AvatarManager="*res://scripts/autoloads/avatar_manager.gd"
 ImageLoader="*res://scripts/systems/image_loader.gd"
 ChatController="*res://scripts/autoloads/chat_controller.gd"
 InteractionManager="*res://scripts/systems/interaction_manager.gd"
-
-
 
 [input]
 
