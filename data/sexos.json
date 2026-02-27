@@ -1,19 +1,14 @@
 {
-	"sexos": [
-		{
-			"id": "masculino",
-			"nombre": "Masculino",
-			"abreviacion": "M"
-		},
-		{
-			"id": "femenino",
-			"nombre": "Femenino",
-			"abreviacion": "F"
-		},
-		{
-			"id": "no_binario",
-			"nombre": "No Binario",
-			"abreviacion": "NB"
-		}
-	]
+    "sexos": [
+        {
+            "id": "masculino",
+            "nombre": "Masculino",
+            "icono": "♂"
+        },
+        {
+            "id": "femenino",
+            "nombre": "Femenino",
+            "icono": "♀"
+        }
+    ]
 }

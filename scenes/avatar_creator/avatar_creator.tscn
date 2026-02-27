@@ -1,0 +1,157 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/avatar_creator/avatar_creator.gd" id="1_script"]
+
+[node name="AvatarCreator" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.12, 0.12, 1)
+
+[node name="MainPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="MainPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Creador de Avatar"
+horizontal_alignment = 1
+
+[node name="HBox" type="HBoxContainer" parent="MainPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="Form" type="VBoxContainer" parent="MainPanel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="MainPanel/VBox/HBox/Form"]
+layout_mode = 2
+text = "Nombre:"
+
+[node name="NameInput" type="LineEdit" parent="MainPanel/VBox/HBox/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Escribe el nombre..."
+
+[node name="RazaLabel" type="Label" parent="MainPanel/VBox/HBox/Form"]
+layout_mode = 2
+text = "Raza:"
+
+[node name="RazaOption" type="OptionButton" parent="MainPanel/VBox/HBox/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SexoLabel" type="Label" parent="MainPanel/VBox/HBox/Form"]
+layout_mode = 2
+text = "Sexo:"
+
+[node name="SexoOption" type="OptionButton" parent="MainPanel/VBox/HBox/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ImageLabel" type="Label" parent="MainPanel/VBox/HBox/Form"]
+layout_mode = 2
+text = "URL de Imagen (Local o Web):"
+
+[node name="ImageInput" type="LineEdit" parent="MainPanel/VBox/HBox/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "res://... o http://..."
+
+[node name="LoadImageBtn" type="Button" parent="MainPanel/VBox/HBox/Form"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Probar Imagen"
+
+[node name="PreviewContainer" type="VBoxContainer" parent="MainPanel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MainPanel/VBox/HBox/PreviewContainer"]
+layout_mode = 2
+text = "Vista Previa:"
+horizontal_alignment = 1
+
+[node name="PreviewFrame" type="Panel" parent="MainPanel/VBox/HBox/PreviewContainer"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="PreviewTexture" type="TextureRect" parent="MainPanel/VBox/HBox/PreviewContainer/PreviewFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DescLabel" type="Label" parent="MainPanel/VBox"]
+layout_mode = 2
+text = "Descripción Narrativa:"
+
+[node name="DescInput" type="TextEdit" parent="MainPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Escribe una breve biografía..."
+wrap_mode = 1
+
+[node name="Buttons" type="HBoxContainer" parent="MainPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="SaveBtn" type="Button" parent="MainPanel/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Guardar"
+
+[node name="CancelBtn" type="Button" parent="MainPanel/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Cancelar"

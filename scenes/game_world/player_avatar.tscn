@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/game_world/player_avatar.gd" id="1_script"]
+
+[node name="PlayerAvatar" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+scale = Vector2(0.5, 0.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 5)
+shape = SubResource("CircleShape2D_7u1p1")
+
+[node name="NameTag" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = -50.0
+offset_top = -60.0
+offset_right = 50.0
+offset_bottom = -37.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "Jugador"
+horizontal_alignment = 1
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_v6n1g")
+
+[sub_resource id="CircleShape2D_7u1p1" type="CircleShape2D"]
+radius = 15.0
+
+[sub_resource id="SceneReplicationConfig_v6n1g" type="SceneReplicationConfig"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1

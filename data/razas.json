@@ -1,34 +1,19 @@
 {
-	"razas": [
-		{
-			"id": "humano",
-			"nombre": "Humano",
-			"descripcion": "Versátiles y adaptables, los humanos son la raza más común"
-		},
-		{
-			"id": "elfo",
-			"nombre": "Elfo",
-			"descripcion": "Seres inmortales con conexión a la naturaleza"
-		},
-		{
-			"id": "enano",
-			"nombre": "Enano",
-			"descripcion": "Resistentes y habilidosos artesanos de las montañas"
-		},
-		{
-			"id": "orco",
-			"nombre": "Orco",
-			"descripcion": "Guerreros poderosos de las tierras salvajes"
-		},
-		{
-			"id": "demonio",
-			"nombre": "Demonio",
-			"descripcion": "Seres de los planos infernales con poderes oscuros"
-		},
-		{
-			"id": "angel",
-			"nombre": "Ángel",
-			"descripcion": "Entidades celestiales de luz y justicia"
-		}
-	]
+  "razas": [
+    {
+      "id": "humano",
+      "nombre": "Humano",
+      "descripcion": "Versátiles y adaptables, los humanos son la raza más común en el mundo."
+    },
+    {
+      "id": "elfo",
+      "nombre": "Elfo",
+      "descripcion": "Seres longevos con una conexión natural con la magia y la naturaleza."
+    },
+    {
+      "id": "enano",
+      "nombre": "Enano",
+      "descripcion": "Fuertes y resistentes, conocidos por su maestría en la forja y la minería."
+    }
+  ]
 }
